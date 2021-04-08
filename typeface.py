@@ -39,6 +39,8 @@ def glyph_a(font, xh, a, d, w, t, s, r):
     glyph = font.newGlyph("a")
     glyph.unicode = ord("a")
     
+    #print('w:', w, 't:', t, 'r:', r)
+    
     path = glyph.getPen()
     
     path.moveTo((0,xh*2/3))
@@ -433,12 +435,11 @@ def calculateDiagonal(t, p1, p2):
     
     return cx, cy, bx, by
     
-from fontParts.world import RFont
 from fontTools.designspaceLib import DesignSpaceDocument
 import ufo2ft
 
 def generateSource(masterName, xHeight, ascender, descender, width, thickness, roundness):   
-    master = RFont()
+    master = RFont(showInterface=False)
     master.info.familyName = familyName
     master.info.styleName = styleName
     master.info.xHeight = xHeight
@@ -466,38 +467,50 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     glyph_y(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
 
     source = doc.newSourceDescriptor()
-    source.font = master.naked()
-    source.location = dict(Width = width)
-    if width == 1 and thickness == 50 :
-        source.copyLib = True
+    source.font = master.naked()## maybe this??
+    source.location = dict(Width=width, Thickness=thickness, Roundness=roundness)
+    if width == 600 and thickness == 50 and roundness == .5:
+        source.copyLib=True
+        print('This is the base master', source.location, source.copyLib)
     doc.addSource(source)
 
-minW = 1
-maxW = 9
+minW = 100
+maxW = 900
 
 minT = 1
 maxT = 50
 
+minR = 0.5
+maxR = 0.9
+
 doc = DesignSpaceDocument()
 
 axisW = doc.newAxisDescriptor()
-axisW.name = "Width"
+axisW.name = "width"
 axisW.tag = "wdth"
 axisW.minimum = minW
-axisW.default = 1
+axisW.default = 600
 axisW.maximum = maxW
 doc.addAxis(axisW)
 
 axisT = doc.newAxisDescriptor()
-axisT.name = "Thickness"
+axisT.name = "thickness"
 axisT.tag = "thcknss"
 axisT.minimum = minT
-axisT.default = 1
+axisT.default = 50
 axisT.maximum = maxT
 doc.addAxis(axisT)
 
+axisR = doc.newAxisDescriptor()
+axisR.name = "Roundness"
+axisR.tag = "rndnss"
+axisR.minimum = minR
+axisR.default = 0.5
+axisR.maximum = maxR
+doc.addAxis(axisR)
 
-familyName = "Ext"
+
+familyName = "Shah"
 styleName = "Regular"
 xHeight = 300
 capHeight = 400
@@ -508,17 +521,19 @@ def testing():
     r = 1
     w = 6
     t = 10
-    generateSource(f"masterW{w}T{t}R{r}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, 1/(r+1))
+    generateSource(f"masterW{w}T{t}R{r}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, 0.5+r/10)
 
 def export():  
-    master.showInterface = false
-    for w in range(8):
-        for t in range(9):
-            for r in range(4):
-                for a in range(2):
-                    for d in range(2):
-                        generateSource(f"masterW{w}T{t}R{r}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, 1/(r+1))
-
+    for w in range(9):
+        for t in range(10):
+            for r in range(5):
+                a = 0
+                d = 1
+                generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, 0.5+r/10)
+                #print(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{xHeight+(a+1)*100}D{-(d+1)*100}")
+                #for a in range(2):
+                    #for d in range(2):
+                
     varFont = ufo2ft.compileVariableTTF(doc)
     varFont.save(f"export/{familyName} variable {datetime.now()}.ttf")
 
