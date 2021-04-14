@@ -70,9 +70,13 @@ def glyph_a(font, xh, a, d, w, t, s, r):
     path.qCurveTo((t,t),(t, 1/3*xh))
     path.qCurveTo((t, 2/3*xh-t), (w*r, 2/3*xh-t))
     path.lineTo((w-t-50, 2/3*xh-t))
-    path.qCurveTo((w-t, xh*(1-r)-t), (w-t, 5/6*xh-t))
+    path.qCurveTo((w-t, 2/3*xh-t), (w-t, 5/6*xh-t))
     path.closePath()
-        
+    
+    #metrics
+    glyph.leftMargin = s
+    glyph.rightMargin = s
+            
 def glyph_b(font, xh, a, d, w, t, s, r):
     glyph = font.newGlyph("b")
     glyph.unicode = ord("b")
@@ -106,37 +110,7 @@ def glyph_d(font, xh, a, d, w, t, s, r):
     #metrics
     glyph.leftMargin = s
     glyph.rightMargin = s
-    
-def glyph_h(font, xh, a, d, w, t, s, r):
-    glyph = font.newGlyph("h")
-    glyph.unicode = ord("h")
-    
-    path = glyph.getPen()
-    
-    path.moveTo((0, 0))
-    path.lineTo((0, a))
-    path.lineTo((t, a))
-    path.lineTo((t, 0))
-    path.closePath()
-    
-    path.moveTo((0,0))
-    path.lineTo((0, 2/3*xh))
-    path.qCurveTo((0, xh+t/2), (w*r, xh+t/2))
-    path.lineTo((w*(1-r), xh+t/2))
-    path.qCurveTo((w, xh+t/2), (w, xh*2/3))
-    path.lineTo((w,0))
-    path.lineTo((w-t,0))
-    path.lineTo((w-t, 2/3*xh))
-    path.qCurveTo((w-t, xh-t/2), (w*(1-r), xh-t/2))
-    path.lineTo((w*r, xh-t/2))
-    path.qCurveTo((t, xh-t/2), (t, xh*2/3))
-    path.lineTo((t,0))
-    path.closePath()
-    
-    #metrics
-    glyph.leftMargin = s
-    glyph.rightMargin = s  
-    
+
 def glyph_h(font, xh, a, d, w, t, s, r):
     glyph = font.newGlyph("h")
     glyph.unicode = ord("h")
@@ -168,7 +142,7 @@ def glyph_h(font, xh, a, d, w, t, s, r):
     glyph.rightMargin = s  
     
 def glyph_ı(font, xh, a, d, w, t, s, r):
-    glyph = font.newGlyph("ı")
+    glyph = font.newGlyph("idotless")
     glyph.unicode = ord("ı")
     
     path = glyph.getPen()
@@ -437,9 +411,11 @@ def calculateDiagonal(t, p1, p2):
     
 from fontTools.designspaceLib import DesignSpaceDocument
 import ufo2ft
+#use fonttools fontbuilder?
+#
 
 def generateSource(masterName, xHeight, ascender, descender, width, thickness, roundness):   
-    master = RFont(showInterface=False)
+    master = RFont()#showInterface=False)
     master.info.familyName = familyName
     master.info.styleName = styleName
     master.info.xHeight = xHeight
@@ -486,7 +462,7 @@ maxR = 0.9
 doc = DesignSpaceDocument()
 
 axisW = doc.newAxisDescriptor()
-axisW.name = "width"
+axisW.name = "Width"
 axisW.tag = "wdth"
 axisW.minimum = minW
 axisW.default = 600
@@ -494,8 +470,8 @@ axisW.maximum = maxW
 doc.addAxis(axisW)
 
 axisT = doc.newAxisDescriptor()
-axisT.name = "thickness"
-axisT.tag = "thcknss"
+axisT.name = "Thickness"
+axisT.tag = "thck"
 axisT.minimum = minT
 axisT.default = 50
 axisT.maximum = maxT
@@ -503,7 +479,7 @@ doc.addAxis(axisT)
 
 axisR = doc.newAxisDescriptor()
 axisR.name = "Roundness"
-axisR.tag = "rndnss"
+axisR.tag = "rndn"
 axisR.minimum = minR
 axisR.default = 0.5
 axisR.maximum = maxR
@@ -516,14 +492,15 @@ xHeight = 300
 capHeight = 400
 
 def testing():
-    a = 0
-    d = 1
-    r = 1
+    a = 1
+    d = 0
+    r = 2
     w = 6
-    t = 10
+    t = 8
     generateSource(f"masterW{w}T{t}R{r}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, 0.5+r/10)
-
+    
 def export():  
+    
     for w in range(9):
         for t in range(10):
             for r in range(5):
@@ -533,7 +510,7 @@ def export():
                 #print(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{xHeight+(a+1)*100}D{-(d+1)*100}")
                 #for a in range(2):
                     #for d in range(2):
-                
+
     varFont = ufo2ft.compileVariableTTF(doc)
     varFont.save(f"export/{familyName} variable {datetime.now()}.ttf")
 
