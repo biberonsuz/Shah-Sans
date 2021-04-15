@@ -792,10 +792,10 @@ def export():
                 else:
                     generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, r/10)
 
-
+    print(Compiling TTF...)
     varFont = ufo2ft.compileVariableTTF(doc)
+    print(Saving...)
     varFont.save(f"export/{familyName} variable {datetime.now()}.ttf")
-
     print(f"Done exporting {familyName} variable {datetime.now()}.ttf")
     
 export()
