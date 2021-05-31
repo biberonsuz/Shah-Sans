@@ -518,6 +518,56 @@ def glyph_r(font, xh, a, d, w, t, s, r):
     glyph.leftMargin = s
     glyph.rightMargin = s   
     
+def glyph_s(font, xh, a, d, w, t, s, r):    
+    glyph = font.newGlyph("s")
+    glyph.unicode = ord("s")
+    
+    path = glyph.getPen()
+    
+    path.moveTo((w,xh*3/4))
+    path.qCurveTo((w,xh+t/2),(w*(1-r), xh+t/2))
+    path.lineTo((w*r, xh+t/2))
+    path.qCurveTo((0,xh+t/2),(0, xh*3/4))
+    path.qCurveTo((0,xh*2/4-t/2),(w*r, xh*2/4-t/2))
+    path.lineTo((w*(1-r), xh*2/4-t/2))
+    path.qCurveTo((w-t/2, xh*2/4-t/2), (w-t/2, xh*1/4))
+    path.qCurveTo((w-t/2, t/2), (w*(1-r), t/2))
+    path.lineTo((w*r, t/2))
+    path.qCurveTo((t/2,t/2), (t/2,xh*1/4))
+    
+    path.lineTo((-t/2,xh*1/4))
+    path.qCurveTo((-t/2, -t/2), (w*r, -t/2))
+    path.lineTo((w*(1-r), -t/2))
+    path.qCurveTo((w+t/2, -t/2), (w+t/2, xh*1/4))
+    path.qCurveTo((w+t/2, xh*2/4+t/2),(w*(1-r), xh*2/4+t/2))
+    path.lineTo((w*r,xh*2/4+t/2))
+    path.qCurveTo((t, xh*2/4+t/2),(t, xh*3/4))
+    path.qCurveTo((t, xh-t/2),(w*r, xh-t/2))
+    path.lineTo((w*(1-r), xh-t/2))
+    path.qCurveTo((w-t, xh-t/2),(w-t, xh*3/4))
+    path.closePath()
+        
+    #metrics
+    glyph.leftMargin = s
+    glyph.rightMargin = s
+    
+def glyph_t(font, xh, a, d, w, t, s, r):    
+    glyph = font.newGlyph("t")
+    glyph.unicode = ord("t")
+    
+    path = glyph.getPen()
+    
+    path.moveTo((0,a))
+    path.lineTo((t,a))
+    path.lineTo((t,xh*1/3))
+    
+    path.closePath()
+        
+    #metrics
+    glyph.leftMargin = s
+    glyph.rightMargin = s
+
+    
 def glyph_u(font, xh, a, d, w, t, s, r):
     glyph = font.newGlyph("u")
     glyph.unicode = ord("u")
@@ -619,6 +669,45 @@ def glyph_y(font, xh, a, d, w, t, s, r):
     #metrics
     glyph.leftMargin = s
     glyph.rightMargin = s 
+    
+def glyph_z(font, xh, a, d, w, t, s, r):
+    glyph = font.newGlyph("z")
+    glyph.unicode = ord("z")
+    d = calculateDiagonal(t, (t/2,t/2), (w-t/2,xh-t/2))
+    
+    path = glyph.getPen()
+    
+    path.moveTo((0,xh))
+    path.lineTo((w,xh))
+    path.lineTo((w,xh-d[1]))
+    path.lineTo((d[0], t))
+    path.lineTo((w,t))
+    path.lineTo((w,0))
+    path.lineTo((0,0))
+    path.lineTo((0,d[1]))
+    path.lineTo((w-d[0],xh-t))
+    path.lineTo((0,xh-t))
+    path.closePath()
+    
+    d = calculateDiagonal(t, (t,t), (w-t,xh-t))
+    
+    path = glyph.getPen()
+    
+    path.moveTo((t-d[0]/2,t))
+    path.lineTo((w-t-d[0]/2,xh-t))
+    path.lineTo((w-t+d[0]/2,xh-t))
+    path.lineTo((t+d[0]/2,t))
+    path.closePath()
+    
+    path.moveTo((w-t-d[0]/2,t))
+    path.lineTo((t-d[0]/2,xh-t))
+    path.lineTo((t+d[0]/2,xh-t))
+    path.lineTo((w-t+d[0]/2,t))
+
+    
+    #metrics
+    glyph.leftMargin = s
+    glyph.rightMargin = s 
 
 def glyph_space(font, xh, a, d, w, t, s, r):
     glyph = font.newGlyph("space")
@@ -716,9 +805,11 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     glyph_p(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
     glyph_q(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
     glyph_r(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
+    glyph_s(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
     glyph_u(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
     glyph_ü(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
     glyph_y(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
+    glyph_z(master, xHeight, ascender, descender, width, thickness, spacing, roundness)
     
     source = doc.newSourceDescriptor()
     source.font = master.naked()## maybe this??
@@ -757,24 +848,25 @@ doc.addAxis(axisT)
 
 axisR = doc.newAxisDescriptor()
 axisR.name = "Roundness"
-axisR.tag = "rndn"
+axisR.tag = "RNDN"
 axisR.minimum = minR
 axisR.default = 0.3
 axisR.maximum = maxR
 doc.addAxis(axisR)
-
+#custom axes change to capitalised in html
 
 familyName = "Shah"
 styleName = "Regular"
 xHeight = 300
 capHeight = 400
 
+#change roundness from 0.1-0.5 to 1-100
 def testing():
     a = 1
     d = 0
     r = 3
     w = 3
-    t = 1
+    t = 6
     if t == 0:
         generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, 1, r/10)
     else:
@@ -792,10 +884,10 @@ def export():
                 else:
                     generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, r/10)
 
-    print(Compiling TTF...)
+    print('Compiling TTF...')
     varFont = ufo2ft.compileVariableTTF(doc)
-    print(Saving...)
+    print('Saving...')
     varFont.save(f"export/{familyName} variable {datetime.now()}.ttf")
     print(f"Done exporting {familyName} variable {datetime.now()}.ttf")
     
-export()
+testing()
