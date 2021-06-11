@@ -377,7 +377,7 @@ def glyph_i(font, xh, a, d, w, t, s, r):
     path.lineTo((t, 0))
     path.closePath()
     
-    component_dot(path, t/2, xh+t*2, t, r)
+    component_dot(path, t/2, xh+t*2, t*1.25, r)
     
     #metrics
     glyph.leftMargin = s*spacing["l"]
@@ -962,8 +962,8 @@ def component_dot(path, x, y, t, r):
 def component_dieresis(path, h, w, t, r):
     nt = t*.75
     
-    component_dot(path, t*2, h+nt/2, t, r)
-    component_dot(path, w-t*2, h+nt/2, t, r)
+    component_dot(path, t*2, h+nt/2, t*1.25, r)
+    component_dot(path, w-t*2, h+nt/2, t*1.25, r)
     
 def component_breve(path, h, w, t, r):
     nt = t*.75
@@ -1082,7 +1082,7 @@ minT = 1
 maxT = 50
 
 minR = 0
-maxR = 0.5
+maxR = 0.45
 
 doc = DesignSpaceDocument()
 
@@ -1120,25 +1120,25 @@ capHeight = 400
 def testing():
     a = 1
     d = 0
-    r = 3
+    r = 0
     w = 3
     t = 8
     if t == 0:
-        generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, 1, r/10)
+        generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, 1, r/20)
     else:
-        generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, r/10)
+        generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, r/20)
 
 
 def export():  
     for w in range(9):
         for t in range(10):
-            for r in range(6):
+            for r in range(10):
                 a = 0
                 d = 1
                 if t == 0:
-                    generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, 1, r/10)
+                    generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, 1, r/20)
                 else:
-                    generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, r/10)
+                    generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*100, (t+1)*5, r/20)
 
     print('Compiling TTF...')
     varFont = ufo2ft.compileVariableTTF(doc)
