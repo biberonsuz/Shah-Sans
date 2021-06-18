@@ -10,8 +10,13 @@ Python generated variable font
 	- glyph_k is very weird looking
 	- cedilla height distorts on t<25
 	- cedilla width distorts on w<400
-- make ascender and descender variable axes
+	- glyph_r disappears when width<200
+	- spacing with width>500
+	- contrast = 0 after CNTR>.85(?)
+- make ascender and descender variable axes (tried doing these, uses more than 60% of my RAM)
 - make rounded serifs components? (like in glyphs) this way they could be adjusted with the r value
+- solve RAM overloading after executing script (how to 'empty' ram after the master objects have been used)
 - kerning ???
 - ligatures ???
 - dots could get boxier on less roundness
+- make italic axis with 
