@@ -20,7 +20,7 @@ spacing = {
     "z": .4,
     "f_right":.36,
     "f_left":.28,
-    "r_right":.2,
+    "r_right":.1,
     "t_left": .40,
     "t_right": .45,
     "v": .1,
@@ -408,8 +408,8 @@ def glyph_b(font, xh, a, d, w, t, s, r, ct, bo, rct):
     
     glyph.removeOverlap() 
     
-    path.moveTo((w*r, xh-t+bo))
-    path.qCurveTo((w-ct/2, xh-t+bo), (w-t/2, xh*(1-r)))
+    path.moveTo((w*(1-r), xh-t+bo))
+    path.qCurveTo((w-ct/2, xh-t+bo), (w-ct/2, xh*(1-r)))
     path.lineTo((w-ct/2, xh*r))
     path.qCurveTo((w-ct/2, t-bo), (w*(1-r), t-bo))
     path.lineTo((w*r, t-bo))
@@ -498,7 +498,7 @@ def glyph_d(font, xh, a, d, w, t, s, r, ct, bo, rct):
     
     glyph.removeOverlap() 
     
-    path.moveTo((w*r, xh-t+bo))
+    path.moveTo((w*(1-r), xh-t+bo))
     path.qCurveTo((w-ct/2.5, xh-t+bo), (w-ct/2.5, xh*(1-r)))
     path.lineTo((w-ct/2.5, xh*r))
     path.qCurveTo((w-ct/2.5, t-bo), (w*(1-r), t-bo))
@@ -863,7 +863,7 @@ def glyph_n(font, xh, a, d, w, t, s, r, ct, bo, rct):
     path.lineTo((w-ct/2,0))
     path.lineTo((w-ct/2, 2/3*xh))
     path.qCurveTo((w-ct/2, xh-t+bo), (w*(1-r), xh-t+bo))
-    path.lineTo((w*r+bo*2, xh-t+bo))
+    path.lineTo((w*r, xh-t+bo))
     path.qCurveTo((ct/2+bo*2, xh-t+bo), (ct/2, xh*2/3))
     path.closePath()            
             
@@ -949,8 +949,8 @@ def glyph_p(font, xh, a, d, w, t, s, r, ct, bo, rct):
     
     glyph.removeOverlap() 
     
-    path.moveTo((w*r, xh-t+bo))
-    path.qCurveTo((w-ct/2, xh-t+bo), (w-t/2, xh*(1-r)))
+    path.moveTo((w*(1-r), xh-t+bo))
+    path.qCurveTo((w-ct/2, xh-t+bo), (w-ct/2, xh*(1-r)))
     path.lineTo((w-ct/2, xh*r))
     path.qCurveTo((w-ct/2, t-bo), (w*(1-r), t-bo))
     path.lineTo((w*r, t-bo))
@@ -994,7 +994,7 @@ def glyph_q(font, xh, a, d, w, t, s, r, ct, bo, rct):
     
     glyph.removeOverlap() 
     
-    path.moveTo((w*r, xh-t+bo))
+    path.moveTo((w*(1-r), xh-t+bo))
     path.qCurveTo((w-ct/2.5, xh-t+bo), (w-ct/2.5, xh*(1-r)))
     path.lineTo((w-ct/2.5, xh*r))
     path.qCurveTo((w-ct/2.5, t-bo), (w*(1-r), t-bo))
@@ -1023,10 +1023,8 @@ def glyph_r(font, xh, a, d, w, t, s, r, ct, bo, rct):
     path.closePath()
     
     path.moveTo((ct/2-t/2, 2/3*xh))
-    path.qCurveTo((ct/2-t/2, xh+bo), (w*r, xh+bo))
-    path.lineTo((w*(1-r), xh+bo))
-    path.lineTo((w*(1-r), xh-t+bo))
-    path.lineTo((w*r, xh-t+bo))
+    path.qCurveTo((ct/2-t/2, xh+bo), (w, xh+bo))
+    path.lineTo((w, xh-t+bo))
     path.qCurveTo((ct/2, xh-t+bo), (ct/2, xh*2/3))
     path.closePath()      
     
@@ -1608,31 +1606,7 @@ def glyph_notdef(font, xh, a, d, w, t, s, r, ct, bo, rct):
     glyph.leftMargin = s
     glyph.rightMargin = s
     
-    
-def component_o(path, xh, w, t, r, ct, bo):
-    path.moveTo((w*r, xh+bo))
-    path.lineTo((w*(1-r), xh+bo))
-    path.qCurveTo((w+ct/2, xh+bo), (w+ct/2, xh*(1-r)))
-    path.lineTo((w+ct/2, xh*r))
-    path.qCurveTo((w+ct/2, -bo), (w*(1-r), -bo))
-    path.lineTo((w*r, -bo))
-    path.qCurveTo((-ct/2, -bo), (-ct/2, r*xh))
-    path.lineTo((-ct/2, xh*(1-r)))
-    path.qCurveTo((-ct/2, xh+bo),(w*r, xh+bo))
-    path.closePath()
-    
-    path.moveTo((w*r, xh-t+bo))
-    path.qCurveTo((ct/2, xh-t+bo), (ct/2, xh*(1-r)))
-    path.lineTo((ct/2, xh*r))
-    path.qCurveTo((ct/2, t-bo), (w*r, t-bo))
-    path.lineTo((w*(1-r), t-bo))
-    path.qCurveTo((w-ct/2, t-bo), (w-ct/2, xh*r))
-    path.lineTo((w-ct/2, xh*(1-r)))
-    path.qCurveTo((w-ct/2, xh-t+bo), (w*(1-r), xh-t+bo))
-    path.lineTo((w*r, xh-t+bo))
-    path.closePath()
-    
-def glyph_dot(font, xh, a, d, w, t, s, r, ct, bo, rct):
+def glyph_dot_round(font, xh, a, d, w, t, s, r, ct, bo, rct):
     glyph = font.newGlyph("dot")
     glyph.unicode = ord("˙")
     
@@ -1652,6 +1626,22 @@ def glyph_dot(font, xh, a, d, w, t, s, r, ct, bo, rct):
     glyph.appendAnchor("top", (0,t))
     glyph.appendAnchor("bottom", (0,0))
     glyph.appendAnchor("center", (0,t/2))
+    glyph.appendAnchor("_top", (0,-xh/6))
+    
+def glyph_dot_square(font, xh, a, d, w, t, s, r, ct, bo, rct):
+    glyph = font.newGlyph("dot")
+    glyph.unicode = ord("˙")
+    
+    path = glyph.getPen()
+    path.moveTo((-ct/2, rct))
+    path.lineTo((ct/2, rct))
+    path.lineTo((ct/2, 0))
+    path.lineTo((-ct/2, 0))
+    path.closePath()
+    
+    glyph.appendAnchor("top", (0,rct))
+    glyph.appendAnchor("bottom", (0,0))
+    glyph.appendAnchor("center", (0,rct/2))
     glyph.appendAnchor("_top", (0,-xh/6))
     
 def glyph_dieresis(font, xh, a, d, w, t, s, r, ct, bo, rct):
@@ -1780,7 +1770,7 @@ from fontTools.designspaceLib import DesignSpaceDocument
 import ufo2ft
 from glyphConstruction import GlyphConstructionBuilder
 
-def generateSource(masterName, xHeight, ascender, descender, width, thickness, roundness, contrast, interface):   
+def generateSource(masterName, xHeight, ascender, descender, width, thickness, roundness, contrast, dot_style, interface):   
     master = RFont(showInterface=interface)
     master.info.familyName = familyName
     master.info.styleName = styleName
@@ -1797,6 +1787,11 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     bottom_offset = thickness*.2
     round_contrast_thickness = contrast_thickness * 1.15
     
+    if dot_style == "round":
+        glyph_dot_round(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
+    elif dot_style == "square":
+        glyph_dot_square(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
+        
     glyph_notdef(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
     
     #white spaces
@@ -1804,7 +1799,6 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     
     #diacritics
     glyph_grave(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
-    glyph_dot(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
     glyph_dieresis(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
     glyph_cedilla(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness)
     
@@ -1942,42 +1936,40 @@ xHeight = 300
 capHeight = 400
 
 #change roundness from 0.1-0.5 to 1-100
-def testing(w, t, r, c):
+def testing(w, t, r, c, ds):
     a = .5
     d = .5
-    generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*(maxW/masterW), (t+1)*(maxT/masterT), round((r+1)*(maxR/masterR),2), round(c*(maxC/masterC),1), True)
+    generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*(maxW/masterW), (t+1)*(maxT/masterT), round((r+1)*(maxR/masterR),2), round(c*(maxC/masterC),1), ds, True)
 
-def export(file_formats):  
+def export(file_formats, dot_style):  
     for w in range(masterW):
        for t in range(masterT):
            for r in range(masterR):
                for c in range(masterC+1):
                    a = .5
                    d = .5
-                   generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*(maxW/masterW), (t+1)*(maxT/masterT), round((r+1)*(maxR/masterR),2), round(c*(maxC/masterC),1), False)
+                   generateSource(f"masterW{(w+1)*100}T{(t+1)*5}R{0.5+r/10}A{a}D{d}", xHeight, xHeight+(a+1)*100, -(d+1)*100, (w+1)*(maxW/masterW), (t+1)*(maxT/masterT), round((r+1)*(maxR/masterR),2), round(c*(maxC/masterC),1), dot_style, False)
     
     cur_path = os.getcwd()
-    print(cur_path)
     if not os.path.exists(cur_path + '/export'):
         os.mkdir(cur_path + '/export')
     formats = file_formats.split() 
     time = datetime.now()
     if 'ttf' in formats:               
         print('Compiling TTF...')
-        varFont = ufo2ft.compileVariableTTF(doc)
+        varFont = ufo2ft.compileVariableTTF(doc) 
         print('Saving TTF...')
         font_name = f"export/{familyName}GX-{time}.ttf"
         varFont.save(font_name)
         print(f"Done exporting {font_name}")
-    if 'otf' in formats:
+    if 'otf' in formats:               
         print('Compiling OTF...')
-        try:
-            varFont = ufo2ft.compileVariableCFF2(doc)
-            print('Saving OTF...')
-            font_name = f"export/{familyName}GX-{time}.otf"
-            varFont.save(font_name)
-            print(f"Done exporting {font_name}")
-        except Exception as e: # work on python 3.x
-            logger.error('Error'+ str(e))
-        
-export('ttf')
+        varFont = ufo2ft.compileVariableCFF2(doc) 
+        print('Saving OTF...')
+        font_name = f"export/{familyName}GX-{time}.otf"
+        varFont.save(font_name)
+        print(f"Done exporting {font_name}")
+
+                
+#testing(2,5,6,3, "square")
+export("otf", "square")
