@@ -720,29 +720,42 @@ def glyph_e(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     path = glyph.getPen()
     
-    path.moveTo((w-ct/2, xh*(1-r)))
-    path.qCurveTo((w-ct/2, xh-t+bo), (w*(1-r), xh-t+bo))
-    path.lineTo((w*r, xh-t+bo))
-    path.qCurveTo((ct/2, xh-t+bo), (ct/2,xh*(1-r)))
-    path.lineTo((ct/2, xh*r))
-    path.qCurveTo((ct/2, t-bo), (w*r, t-bo))
-    path.lineTo((w*(1-r),t-bo))
-    path.qCurveTo((w-ct/2, t-bo), (w-ct/2, xh*r))
+    w=w*width["o"]
+    wc = 0.552284749831*(1+r)*(w+ct)/2
+    xhc = 0.552284749831*(1+r)*xh/2+bo
     
+    path = glyph.getPen()
+    
+    path.moveTo((w/2, xh+bo))
+    path.curveTo((w/2+wc, xh+bo), (w+ct/2, xh/2+xhc), (w+ct/2, xh/2))
+    path.lineTo((ct/2, xh/2))
+    path.lineTo((ct/2, xh*r))
+    
+    
+    #wc = 0.552284749831*(1+r)*(w-ct)/2
+    #xhc = 0.552284749831*xh/2+bo-t/2
+    
+    path.qCurveTo((ct/2, -bo+t), (w*r, -bo+t))
+    path.lineTo((w*(1-r), -bo+t))
+    path.qCurveTo((w-ct/2, -bo+t), (w-ct/2, xh*r))
     path.lineTo((w+ct/2, xh*r))
     path.qCurveTo((w+ct/2, -bo), (w*(1-r), -bo))
-    path.lineTo((w*r,-bo))
+    path.lineTo((w*r, -bo))
     path.qCurveTo((-ct/2, -bo), (-ct/2, xh*r))
-    path.lineTo((-ct/2, xh*(1-r)))
-    path.qCurveTo((-ct/2, xh+bo), (w*r,xh+bo))
-    path.lineTo((w*(1-r), xh+bo))
-    path.qCurveTo((w+ct/2, xh+bo), (w+ct/2,xh*(1-r)))
+    path.lineTo((-ct/2, xh/2))
     
-    path.lineTo((w+ct/2,xh/2+1))
-    path.lineTo((ct/2,xh/2+1))
-    path.lineTo((ct/2,xh/2+t+1))
-    path.lineTo((w-ct/2,xh/2+t+1))
     
+    path.curveTo((-ct/2, xh/2+xhc), (w/2-wc, xh+bo), (w/2, xh+bo))
+    
+    path.closePath()
+    
+    wc = 0.552284749831*(1+r)*(w-ct)/2
+    xhc = 0.552284749831*xh/2+bo-t/2-t
+    
+    path.moveTo((w/2, xh+bo-t))
+    path.curveTo((w/2-wc, xh+bo-t), (ct/2, xh/2+t+xhc), (ct/2, xh/2+t))
+    path.lineTo((w-ct/2, xh/2+t))
+    path.curveTo((w-ct/2, xh/2+t+xhc), (w/2+wc, xh+bo-t), (w/2, xh+bo-t))
     path.closePath()    
     
     #metrics
@@ -1110,7 +1123,7 @@ def glyph_o(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.closePath()
     
     wc = 0.552284749831*(1+r)*(w-ct)/2
-    xhc = 0.552284749831*xh/2+bo-t/2
+    xhc = 0.552284749831*(1+r)*xh/2+bo-t/2
     
     path.moveTo((w/2, xh+bo-t))
     path.curveTo((w/2-wc, xh+bo-t), (ct/2, xh/2+xhc), (ct/2, xh/2))
@@ -2058,7 +2071,7 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     
     spacing = thickness/50 + 80
     contrast_thickness = thickness*(1+contrast)
-    bottom_offset = thickness*roundness
+    bottom_offset = thickness/2*roundness
     round_contrast_thickness = contrast_thickness * 1.15
     
     if dot_style == "round":
@@ -2104,10 +2117,10 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     #lower-case
     glyph_a(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_a_dieresis(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    #glyph_b(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_b(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_c(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_c_cedilla(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    glyph_d(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    #glyph_d(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_e(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_f(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_g(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
@@ -2181,9 +2194,9 @@ defT = 40
 maxT = 50
 masterT = 5
 
-minR = 0.05
-defR = .3
-maxR = 0.5
+minR = 0.1
+defR = 1
+maxR = 1
 masterR = 10
 
 minC = 0
@@ -2266,5 +2279,5 @@ def export(file_formats, dot_style, serifs):
         print(f"Done exporting {font_name}")
 
 
-testing(2,3,5,3, "round", False)
+testing(2,3,9,3, "round", False)
 #export("ttf", "square", False)
