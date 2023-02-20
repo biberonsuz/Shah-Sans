@@ -4,5 +4,5 @@ Shah Sans is a python generated variable font. Inspired by the shape-shifting my
 ## [Online Type Specimen](https://pinarkazak.com/works/shah-sans.html)
 
 
-## [Process Book](https://colorful-jumpsuit-405.notion.site/GD-YR-3-SEM-2-LETTERSTUDIO-JR_2-MODULE-SHAH-SANS-1aa029d534bd48908da9f787c613fa40 )
+## [Process Book](https://scarlet-snapdragon-6dd.notion.site/SHAH-SANS-33eaedb4d09b4beb8061551960308860)
 
