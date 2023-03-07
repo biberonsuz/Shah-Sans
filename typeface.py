@@ -23,7 +23,7 @@ spacing = {
     "r_right":.1,
     "t_left": .40,
     "t_right": .45,
-    "v": .1,
+    "v": .15,
     "j_left":-.14,
     "k_right":-.1,
     "A":-.1,
@@ -31,13 +31,14 @@ spacing = {
     "T": .2,
     "E_right": .5,
     "V": .14,
+    "F_right": .25
 }
 
 width = {
     "m": 1.7,
-    "w": 1.44,
+    "w": 1.6,
     "d": 1.11, "p": 1.11, "q": 1.11, "b": 1.11, "g": 1.11,
-    "o": 1.11,
+    "o": 1.15,
     "e": 1.05, "n": 1.05, "h": 1.05,
     "u": 1.05, "y": 1.11,
     "a": 1.05, 
@@ -45,19 +46,23 @@ width = {
     "s": 1, 
     "x": 1,
     "k": 1,
-    "z": 1, "v": 1,
+    "z": 1, "v": 1.05,
     "r": .66,
-    "t": .55, "j":.3, "f": .3,
-    "A": 1.33, "K": 1.33, "V": 1.33, "X": 1.33,
+    "t": .55, "j":.3, "f": .5,
+    "K": 1.4, "V": 1.4, "X": 1.4,
+    "A": 1.55,
     "O": 1.55,
     "D": 1.44,
     "L": 1.11,
-    "T": 1.4,
+    "T": 1.5,
     "E": 1.33,
     "F": 1.22,
     "U": 1.44, "H": 1.44, "N": 1.44,
     "Z": 1.22,
-    "W": 1.9
+    "W": 1.9,
+    "underscore": 0.8,
+    "breve": 0.7,
+    "slash": 0.7
 }
 def kerning_groups(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     font.kerning["A", "T"] = s*-1.5
@@ -170,7 +175,6 @@ def glyph_F(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     midw = w*.7
     
     path = glyph.getPen()
-        
     path.moveTo((-ct/2, a))
     path.lineTo((w, a))
     
@@ -187,7 +191,7 @@ def glyph_F(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
 
     
     glyph.leftMargin = s*spacing["l"]
-    glyph.rightMargin = s*spacing["E_right"]  
+    glyph.rightMargin = s*spacing["F_right"]  
 
     
 def glyph_H(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):    
@@ -223,12 +227,7 @@ def glyph_I(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     w=ct 
     path = glyph.getPen()
-    
-    path.moveTo((-ct/2, 0))
-    path.lineTo((-ct/2, a))
-    path.lineTo((ct/2, a))
-    path.lineTo((ct/2, 0))
-    path.closePath()
+    stem(path, -ct/2, 0, ct, a)
     
     glyph.appendAnchor("top", (0, a))
     
@@ -237,12 +236,18 @@ def glyph_I(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
 def glyph_I_dot_accent(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):    
     glyph = font.newGlyph("Idotaccent")
-    
     construction = GlyphConstructionBuilder("Idotaccent = I + dot@top", font)
     construction.draw(glyph.getPen())
-    
     glyph.unicode = ord("İ")
     
+    glyph.leftMargin = s*spacing["l"]
+    glyph.rightMargin = s*spacing["l"] 
+    
+def glyph_I_acute(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):    
+    glyph = font.newGlyph("Iacute")
+    construction = GlyphConstructionBuilder("Iacute = I + acute@top", font)
+    construction.draw(glyph.getPen())
+    glyph.unicode = ord("Í")
     
     glyph.leftMargin = s*spacing["l"]
     glyph.rightMargin = s*spacing["l"] 
@@ -257,13 +262,7 @@ def glyph_K(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     d = calculate_diagonal(t, ct, (ct,midh),(w,a))
         
     path = glyph.getPen()
-    
-    path.moveTo((0, 0))
-    path.lineTo((0, a))
-    path.lineTo((ct, a))
-    path.lineTo((ct, 0))
-    path.closePath()
-    
+    stem(path, 0, 0, ct, a)
     path.moveTo((ct, midh))
     path.lineTo((w, a))
     path.lineTo((w+d[0], a))
@@ -532,68 +531,94 @@ def glyph_Z(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph.leftMargin = s*spacing["z"]
     glyph.rightMargin = s*spacing["z"]
     
+def curve(path, start_point, end_point, r, inflection, radius_coefficient=.552284749831):
+    delta_x = end_point[0] - start_point[0]
+    delta_y = end_point[1] - start_point[1]
+    
+    slope = delta_y/delta_x
+        
+    if inflection == "convex":    
+        if slope >= 0:
+            wc = radius_coefficient*(2-r)*(delta_x)
+            xhc = radius_coefficient*(2-r)*(delta_y)
+            #print (slope, wc, xhc)
+            path.curveTo((start_point[0], start_point[1]+xhc), (start_point[0]+wc, end_point[1]), (end_point[0], end_point[1]))
+
+        elif slope <= 0:
+            wc = radius_coefficient*(2-r)*(delta_x)
+            xhc = radius_coefficient*(2-r)*(delta_y)
+            #print(slope, wc, xhc)
+            path.curveTo((start_point[0]+wc, start_point[1]), (end_point[0], start_point[1]+xhc), (end_point[0], end_point[1]))
+    elif inflection == "concave":
+        if slope >= 0:
+            wc = radius_coefficient*(2-r)*(delta_x)
+            xhc = radius_coefficient*(2-r)*(delta_y)
+            #print (slope, wc, xhc)
+            path.curveTo((start_point[0]+wc, start_point[1]), (end_point[0], start_point[1]+xhc), (end_point[0], end_point[1]))
+
+        elif slope <= 0:
+            wc = radius_coefficient*(2-r)*(delta_x)
+            xhc = radius_coefficient*(2-r)*(delta_y)
+            #print(slope, wc, xhc)
+            path.curveTo((start_point[0], start_point[1]+xhc), (start_point[0]+wc, end_point[1]), (end_point[0], end_point[1]))
+    
 def glyph_a(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):    
     glyph = font.newGlyph("a")
     glyph.unicode = ord("a")
-
     w=w*width["a"]
     
     midh = .5*xh
     toph = midh+((xh-midh)*0.2)
-    
+    topc = w/2 + ct/4
     path = glyph.getPen()
     
-    wc = 0.552284749831*(2-r)*(w+rct)/2
-    xhc = 0.552284749831*(2-r)*(xh-toph+bo-t)
-    
-    path.moveTo((w/2,xh+bo))
-    path.curveTo((w/2+wc, xh+bo), (w+ct/2, toph+t+xhc), (w+ct/2, toph+t))
-    path.lineTo((w+ct/2, xh*.1))
-    path.curveTo((w+ct/2,0),(w+ct/2,0),(w+ct,0))
-    
-    wc = 0.552284749831*(2-r)*(w-rct)/2
-    xhc = 0.552284749831*(2-r)*(xh-toph+bo-t-t)
-    
-    path.lineTo((w,0))
-    path.curveTo((w-ct/2,0),(w-ct/2,0),(w-ct/2, xh*.1))
-    path.lineTo((w-ct/2, xh*.1))
+    path.moveTo((topc,xh+bo))
+    curve(path, (topc, xh+bo), (w+ct/2, toph+t), r, "convex")
+    path.lineTo((w+ct/2, xh*.15))
+    curve(path, (w+ct/2, xh*.15), (w+ct/2+t/4,0), r, "concave")
+    path.lineTo((w-ct/2+t/4,0))
+    curve(path, (w-ct/2+t/4,0), (w-ct/2, xh*.15), r, "convex")
+    path.lineTo((w-ct/2, xh*.15))
     path.lineTo((w-ct/2, toph+t))
-    path.curveTo((w-ct/2, toph+t+xhc),(w/2+wc, xh-t+bo), (w/2, xh-t+bo))
+    curve(path, (w-ct/2, toph+t), (topc, xh-t+bo), r, "concave")
     
-    path.curveTo((w/2-wc, xh+bo-t),(ct, toph+t+xhc), (ct, toph+t))
+    curve(path, (topc, xh-t+bo), (ct, toph+t), r, "concave")
     path.lineTo((0, toph+t))
-    
-    wc = 0.552284749831*(2-r)*(w+rct)/2
-    xhc = 0.552284749831*(2-r)*(xh-toph+bo-t)
-    path.curveTo((0, toph+t+xhc),(w/2-wc, xh+bo),(w/2, xh+bo))
+    curve(path, (0, toph+t), (topc, xh+bo), r, "convex")
     path.closePath()
     
-    hc = w/2
-    #curve thickness intersecting the stem
-    it = ct*0.5
+    bwo = rct/4 #bowl-offset
+    hc = w/2-rct/4
+    it = ct*0.7
     
-    wc = 0.552284749831*(2-r)*(w/2+rct/2)
-    xhc = 0.7*(2-r)*midh/2+t
-    path.moveTo((-rct/2, midh/2))
-    path.curveTo((-rct/2, midh/2+xhc), (hc-wc, midh+t), (hc, midh+t))
-    path.curveTo((w/2+wc, midh+t),(w-ct/2,midh+t),(w-ct/2, toph+t))
+    #stem connection - outside
+    xhc = 0.552284749831*(2-r)*(toph-midh)
+    wc = 0.552284749831*(2-r)*(hc-ct/2)
+    path.moveTo((hc, midh+t))
+    path.curveTo((hc+wc, midh+t),(w-ct/2,toph+t-xhc),(w-ct/2, toph+t))
+    #inside
+    xhc = 0.552284749831*(2-r)*(toph-midh+t)
+    wc = 0.552284749831*(2-r)*(hc-ct/2+it)
+    path.lineTo((w-ct/2+it, toph+t))
+    path.curveTo((w-ct/2+it, toph+t-xhc),(hc+wc, midh), (hc, midh))
     
-    xhc = 0.7*midh/2
-    path.lineTo((w-ct/2, toph))
-    path.curveTo((w-ct/2, midh),(w/2+wc, midh), (w/2, midh))
-    wc = 0.552284749831*(2-r)*(w/2-rct/2)
-    path.curveTo((hc-wc, midh), (rct/2, midh/2+xhc), (rct/2, midh/2))
-    xhc = 0.7*midh/2+bo-t
-    path.curveTo((rct/2, midh/2-xhc), (hc-wc, -bo+t), (hc, -bo+t))
-    wc = 0.552284749831*(2-r)*(w/2-ct/2)
-    path.curveTo((hc+wc, -bo+t), (w-ct/2, midh/2-xhc), (w-ct/2, midh/2))
-    
-    xhc = 0.7*midh/2+bo
-    path.lineTo((w+ct/2-it, midh/2))
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
-    path.curveTo((w+ct/2-it, midh/2-xhc), (hc+wc, -bo), (hc, -bo))
-    wc = 0.552284749831*(2-r)*(w/2+rct/2)
-    path.curveTo((hc-wc, -bo), (-rct/2, midh/2-xhc), (-rct/2, midh/2))
+    #bowl - inside
+    wc = 0.552284749831*(2-r)*(hc+bwo-rct/2-ct/2)
+    xhc = 0.552284749831*(2-r)*(midh/2+t/2-t)
+    path.curveTo((hc-wc, midh), (-bwo+rct/2+ct/2, midh/2+t/2+xhc), (-bwo+rct/2+ct/2, midh/2+t/2))
+    xhc = 0.552284749831*(2-r)*(midh/2+t/2+bo-t)
+    path.curveTo((-bwo+rct/2+ct/2, midh/2+t/2-xhc), (hc-wc, -bo+t), (hc, -bo+t))
+    wc = 0.552284749831*(2-r)*(w-hc-ct/2)
+    path.curveTo((hc+wc, -bo+t), (w-ct/2, midh/2+t/2-xhc), (w-ct/2, midh/2+t/2))
+    #outside
+    xhc = 0.552284749831*(2-r)*(midh/2+t/2+bo)
+    path.lineTo((w-ct/2+it, midh/2+t/2))
+    wc = 0.552284749831*(2-r)*(w-hc-ct/2+it)
+    path.curveTo((w-ct/2+it, midh/2+t/2-xhc), (hc+wc, -bo), (hc, -bo))
+    wc = 0.552284749831*(2-r)*(hc+bwo)
+    path.curveTo((hc-wc, -bo), (-bwo, midh/2+t/2-xhc), (-bwo, midh/2+t/2))
+    xhc = 0.552284749831*(2-r)*(midh/2+t/2)
+    path.curveTo((-bwo, midh/2+t/2+xhc), (hc-wc, midh+t), (hc, midh+t))
     path.closePath()
     
     glyph.appendAnchor("top", (w/2, xh+bo))
@@ -622,35 +647,26 @@ def glyph_b(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     path = glyph.getPen()
     
-    path.moveTo((-ct/2, a))
-    path.lineTo((ct/2,a))
-    path.lineTo((ct/2,0))
-    path.lineTo((-ct/2, 0))
-    path.closePath()
-    
+    stem(path, -ct/2, 0, ct, a)
+
     hc = w/2
-    #curve thickness intersecting the stem
-    it = ct*0.5
+    it = ct*0.7
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
+    xhc = 0.552284749831*(2-r)*(xh/2+bo)
     path.moveTo((ct/2-it, xh/2))
     path.curveTo((ct/2-it, xh/2+xhc), (hc-wc, xh+bo), (hc, xh+bo))
     
     wc = 0.552284749831*(2-r)*(w/2+rct/2)
-    
     path.curveTo((hc+wc, xh+bo), (w+rct/2, xh/2+xhc), (w+rct/2, xh/2))
     path.curveTo((w+rct/2, xh/2-xhc), (hc+wc, -bo), (hc, -bo))
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
-    
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     path.curveTo((hc-wc, -bo), (ct/2-it, xh/2-xhc), (ct/2-it, xh/2))
     path.closePath()
     
     wc = 0.552284749831*(2-r)*(w/2-ct/2)
-    xhc = 0.552284749831*xh/2+bo-t/2
-        
+    xhc = 0.552284749831*(xh/2+bo-t/2)
     path.moveTo((ct/2, xh/2))
     path.curveTo((ct/2, xh/2-xhc), (hc-wc, -bo+t), (hc, -bo+t))
     wc = 0.552284749831*(2-r)*(w/2-rct/2)
@@ -675,8 +691,6 @@ def glyph_c(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     wc = 0.552284749831*(2-r)*(w+rct)/2
     xhc = 0.552284749831*(2-r)*xh/2+bo
     
-    path = glyph.getPen()
-    
     path.moveTo((w/2, xh+bo))
     ter = calculate_terminals(0.52, w/2-rct/2, xh/2+bo-t)
     path.curveTo((w/2+wc, xh+bo),(w/2+ter[0]+rct, xh/2+ter[1]))
@@ -692,7 +706,6 @@ def glyph_c(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.curveTo((rct/2, xh/2-xhc), (w/2-wc, -bo+t), (w/2, -bo+t))
     path.curveTo((w/2+wc, -bo+t), (w/2+ter[0], xh/2+ter[1]))
     
-    
     wc = 0.552284749831*(2-r)*(w+rct)/2
     xhc = 0.552284749831*(2-r)*xh/2+bo
     
@@ -701,9 +714,6 @@ def glyph_c(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.curveTo((w/2-wc, -bo), (-rct/2, xh/2-xhc), (-rct/2, xh/2))
     path.curveTo((-rct/2, xh/2+xhc), (w/2-wc, xh+bo), (w/2, xh+bo))
     path.closePath()
-    
-   
-
     
     glyph.appendAnchor("top", (w/2, xh+bo))
     glyph.appendAnchor("bottom", (w/2, -bo))
@@ -714,10 +724,8 @@ def glyph_c(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
 def glyph_c_cedilla(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("ccedilla")
-    
     construction = GlyphConstructionBuilder("ccedilla = c + cedilla@bottom", font)
     construction.draw(glyph.getPen())
-    
     glyph.unicode = ord("ç")
     
     #metrics
@@ -727,20 +735,13 @@ def glyph_c_cedilla(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
 def glyph_d(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("d")
     glyph.unicode = ord("d")
-
     w=w*width["d"]
     
     path = glyph.getPen()
-    
-    path.moveTo((w-ct/2, a))
-    path.lineTo((w+ct/2,a))
-    path.lineTo((w+ct/2,0))
-    path.lineTo((w-ct/2, 0))
-    path.closePath()
+    stem(path, w-ct/2, 0, ct, a)
     
     hc = w/2
-    #curve thickness intersecting the stem
-    it = ct*0.5
+    it = ct*0.7
     
     wc = 0.552284749831*(2-r)*(w/2+rct/2)
     xhc = 0.552284749831*(2-r)*(xh/2+bo)
@@ -748,7 +749,7 @@ def glyph_d(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.moveTo((-rct/2, xh/2))
     path.curveTo((-rct/2, xh/2+xhc), (hc-wc, xh+bo), (hc, xh+bo))
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     
     path.curveTo((hc+wc, xh+bo), (w-ct/2+it, xh/2+xhc), (w-ct/2+it, xh/2))
     path.curveTo((w-ct/2+it, xh/2-xhc), (hc+wc, -bo), (hc, -bo))
@@ -847,10 +848,10 @@ def glyph_f(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.curveTo((-ct/2, top+xhc), (w/2-wc, a+bo), (w/2,a+bo))
     path.closePath()    
     
-    path.moveTo((-w/2.5, xh))
+    path.moveTo((-w/3-ct/2, xh))
     path.lineTo((w, xh))
     path.lineTo((w, xh-t))
-    path.lineTo((-w/2.5, xh-t))
+    path.lineTo((-w/3-ct/2, xh-t))
     path.closePath()  
     
     #metrics
@@ -860,67 +861,60 @@ def glyph_f(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
 def glyph_g(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("g")
     glyph.unicode = ord("g")
-    
     w=w*width["g"]
     
     path = glyph.getPen()
-
     hc = w/2
-    it = ct*0.5
+    it = ct*0.7
     
     wc = 0.552284749831*(2-r)*(w/2+rct/2)
-    xhc = 0.552284749831*(2-r)*xh/2+bo
+    xhc = 0.552284749831*(2-r)*(xh/2+bo)
     path.moveTo((-rct/2, xh/2))
     path.curveTo((-rct/2, xh/2+xhc), (hc-wc, xh+bo), (hc, xh+bo))
-    
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     path.curveTo((hc+wc, xh+bo), (w-ct/2+it, xh/2+xhc), (w-ct/2+it, xh/2))
     path.curveTo((w-ct/2+it, xh/2-xhc), (hc+wc, -bo), (hc, -bo))
-    
     wc = 0.552284749831*(2-r)*(w/2+rct/2)
     path.curveTo((hc-wc, -bo), (-rct/2, xh/2-xhc), (-rct/2, xh/2))
     path.closePath()
     
     wc = 0.552284749831*(2-r)*(w/2-rct/2)
-    xhc = 0.552284749831*xh/2+bo-t
-    path.moveTo((rct/2, xh/2))
-    path.curveTo((rct/2, xh/2-xhc), (hc-wc, -bo+t), (hc, -bo+t))
+    xhc = 0.552284749831*(xh/2+bo-t)
+    path.moveTo((ct/2, xh/2))
+    path.curveTo((ct/2, xh/2-xhc), (hc-wc, -bo+t), (hc, -bo+t))
     wc = 0.552284749831*(2-r)*(w/2-ct/2)
     path.curveTo((hc+wc, -bo+t), (w-ct/2, xh/2-xhc), (w-ct/2, xh/2))
     path.curveTo((w-ct/2, xh/2+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
-    wc = 0.552284749831*(2-r)*(w/2-rct/2)
-    path.curveTo((hc-wc, xh-t+bo), (rct/2, xh/2+xhc), (rct/2, xh/2))
+    wc = 0.552284749831*(2-r)*(w/2-ct/2)
+    path.curveTo((hc-wc, xh-t+bo), (ct/2, xh/2+xhc), (ct/2, xh/2))
     path.closePath()
     
-    path.moveTo((w-ct/2, 0))
-    path.lineTo((w-ct/2, t-bo))
-    path.lineTo((w-t/2, xh*r))
-    path.lineTo((w-ct/2, xh-t+bo))
-    path.lineTo((w-ct/2, xh))
+    both = d-(d*0.8)
+    hc = w/2 + t/4
+    wc = 0.552284749831*(2-r)*(hc+ct/2)
+    xhc = 0.552284749831*(2-r)*(both-d+bo)
+    path.moveTo((w-ct/2, xh))
     path.lineTo((w+ct/2, xh))
-    path.lineTo((w+ct/2, 0))
-    
-    path.lineTo((w+ct/2, d+(xh*1/3)))
-    path.qCurveTo((w+ct/2, d-bo), (w*(1-r), d-bo))
-    path.lineTo((w*r, d-bo))
-    path.qCurveTo((-ct/2, d-bo), (-ct/2, d+(xh*1/3)))
-    
-    path.lineTo((ct/2, d+(xh*1/3)))
-    path.qCurveTo((ct/2, d+t-bo),(w*r, d+t-bo))
-    path.lineTo((w*(1-r), d+t-bo))
-    path.qCurveTo((w-ct/2, d+t-bo), (w-ct/2, d+(xh*1/3)))
+    path.lineTo((w+ct/2, both+t))
+    path.curveTo((w+ct/2, both-xhc), (hc+wc, d-bo), (hc, d-bo))
+    path.curveTo((hc-wc, d-bo), (-ct/2+t/2, both-xhc), (-ct/2+t/2, both))
+    wc = 0.552284749831*(2-r)*(hc-ct/2)
+    xhc = 0.552284749831*(2-r)*(both-d+bo-t)
+    path.lineTo((+t/2+ct/2, both))
+    path.curveTo((+t/2+ct/2, both-xhc), (hc-wc, d-bo+t), (hc, d-bo+t))
+    path.curveTo((hc+wc, d-bo+t), (w-ct/2, both-xhc), (w-ct/2, both+t))
     path.closePath()
+    
+    glyph.appendAnchor("top", (w/2, xh+bo))
     
     #metrics
     glyph.leftMargin = s*spacing["e_left"]
     glyph.rightMargin = s*spacing["l"]
     
 def glyph_g_breve(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
-    glyph = font.newGlyph("g_breve")
-    
+    glyph = font.newGlyph("gbreve")
     construction = GlyphConstructionBuilder("gbreve = g + breve@top", font)
     construction.draw(glyph.getPen())
-    
     glyph.unicode = ord("ğ")
     
     #metrics
@@ -932,38 +926,32 @@ def glyph_h(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph.unicode = ord("h")
     
     w=w*width["h"]
-    #horizontal curve center
-    hc = w/2+ct*.25
+    
+    it = ct*0.7
+    hc = w*.55
+    top = .6*xh
+    toph = xh - top
     
     path = glyph.getPen()
     
-    path.moveTo((-ct/2, 0))
-    path.lineTo((-ct/2, a))
-    path.lineTo((ct/2, a))
-    path.lineTo((ct/2, 0))
-    path.closePath()
+    stem(path, -ct/2, 0, ct, a)
+    wc = 0.7*(2-r)*(hc-ct/2+it)
+    xhc = 0.552284749831*(2-r)*(toph+bo)
+    path.moveTo((ct/2-it, top))
+    path.curveTo((ct/2-it, top+xhc), (hc-wc, xh+bo), (hc, xh+bo))
     
-    wc = 0.552284749831*(2-r)*(w/2-ct/2+(bo*2))
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    
-    path.moveTo((ct/2-bo*2, xh/2))
-    path.curveTo((ct/2-bo*2, xh/2+xhc), (hc-wc, xh+bo), (hc, xh+bo))
-    
-    wc = 0.552284749831*(2-r)*(w+ct)/2
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    
-    path.curveTo((hc+wc, xh+bo), (w+ct/2, xh/2+xhc), (w+ct/2, xh/2))
+    wc = 0.7*(2-r)*(w-hc+ct/2)
+    path.curveTo((hc+wc, xh+bo), (w+ct/2, top+xhc), (w+ct/2, top))
     path.lineTo((w+ct/2,0))
     
-    wc = 0.552284749831*(2-r)*(w-ct)/2
-    xhc = 0.552284749831*xh/2+bo-t/2
-    
     path.lineTo((w-ct/2,0))
-    path.lineTo((w-ct/2, xh/2))
-    path.curveTo((w-ct/2, xh/2+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
-    path.curveTo((hc-wc, xh-t+bo), (ct/2, xh/2+xhc), (ct/2, xh/2))
+    path.lineTo((w-ct/2, top))
+    wc = 0.7*(2-r)*(w-hc-ct/2)
+    xhc = 0.552284749831*(toph+bo-t)
+    path.curveTo((w-ct/2, top+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
+    wc = 0.7*(2-r)*(hc-ct/2)
+    path.curveTo((hc-wc, xh-t+bo), (ct/2, top+xhc), (ct/2, top))
     path.closePath()     
-
     
     #metrics
     glyph.leftMargin = s*spacing["l"]
@@ -975,14 +963,9 @@ def glyph_i_dotless(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     w=ct
     path = glyph.getPen()
+    stem(path, -ct/2, 0, ct, xh)
     
-    path.moveTo((0, 0))
-    path.lineTo((0, xh))
-    path.lineTo((ct, xh))
-    path.lineTo((ct, 0))
-    path.closePath()
-    
-    glyph.appendAnchor("top", (ct/2, xh))
+    glyph.appendAnchor("top", (0, xh))
     
     #metrics
     glyph.leftMargin = s*spacing["l"]
@@ -990,12 +973,20 @@ def glyph_i_dotless(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
 def glyph_i(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("i")
-    
     construction = GlyphConstructionBuilder("i = idotless + dot@top", font)
     construction.draw(glyph.getPen())
-    
     glyph.unicode = ord("i")
         
+    #metrics
+    glyph.leftMargin = s*spacing["l"]
+    glyph.rightMargin = s*spacing["l"]
+    
+def glyph_i_acute(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
+    glyph = font.newGlyph("iacute")
+    construction = GlyphConstructionBuilder("i = idotless + acute@top", font)
+    construction.draw(glyph.getPen())
+    glyph.unicode = ord("í")
+    
     #metrics
     glyph.leftMargin = s*spacing["l"]
     glyph.rightMargin = s*spacing["l"]
@@ -1007,8 +998,8 @@ def glyph_j_dotless(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     w=w*width["j"]
     path = glyph.getPen()
     
-    wc = 0.552284749831*(2-r)*w-ct
-    xhc = 0.552284749831*(2-r)*d*.8+t
+    wc = 0.552284749831*(2-r)*(w-ct)
+    xhc = 0.552284749831*(2-r)*(d*.8+t)
     path.moveTo((ct/2, d*.2))
     path.lineTo((ct/2, xh))
     path.lineTo((-ct/2, xh))
@@ -1016,7 +1007,7 @@ def glyph_j_dotless(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.curveTo((-ct/2, d*.2+xhc), (-w+wc, d+t), (-w,d+t))
     path.lineTo((-ct/2-w,d+t))
     wc = 0.552284749831*(2-r)*w
-    xhc = 0.552284749831*(2-r)*d*.8
+    xhc = 0.552284749831*(2-r)*(d*.8)
     path.lineTo((-ct/2-w,d))
     path.lineTo((-w, d))
     path.curveTo((-w+wc,d), (ct/2, d*.2+xhc), (ct/2, d*.2))
@@ -1053,11 +1044,7 @@ def glyph_k(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     w=w*width["k"]
     
     path = glyph.getPen()
-    path.moveTo((-ct/2,0))
-    path.lineTo((-ct/2,a))
-    path.lineTo((ct/2,a))
-    path.lineTo((ct/2,0))
-    path.closePath()
+    stem(path, -ct/2, 0, ct, a)
         
     path.moveTo((w-d[0],xh))
     path.lineTo((w, xh))
@@ -1080,14 +1067,8 @@ def glyph_l(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph.unicode = ord("l")
     
     w=ct
-    
     path = glyph.getPen()
-    
-    path.moveTo((0, 0))
-    path.lineTo((0, a))
-    path.lineTo((ct, a))
-    path.lineTo((ct, 0))
-    path.closePath()
+    stem(path, -ct/2, 0, ct, a)
         
     #metrics
     glyph.leftMargin = s*spacing["l"]
@@ -1099,47 +1080,48 @@ def glyph_m(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     w=w*width["m"]
     
+    w=w/2
+    
+    it = ct*0.7
+    hc = w*.55
+    top = .6*xh
+    toph = xh - top
+    
     path = glyph.getPen()
+    
     stem(path, -ct/2, 0, ct, xh)
-    
-    hc = w/4+ct*.25
-    w = w/2
-    wc = 0.552284749831*(2-r)*(w/2-ct/2+(bo*2))
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    path.moveTo((ct/2-bo*2, xh/2))
-    path.curveTo((ct/2-bo*2, xh/2+xhc), (hc-wc, xh+bo), (hc, xh+bo))
-    
-    wc = 0.552284749831*(2-r)*(w+ct)/2
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    path.curveTo((hc+wc, xh+bo), (w+ct/2, xh/2+xhc), (w+ct/2, xh/2))
+    wc = 0.552284749831*(2-r)*(hc-ct/2+it)
+    xhc = 0.552284749831*(2-r)*(toph+bo)
+    path.moveTo((ct/2-it, top))
+    path.curveTo((ct/2-it, top+xhc), (hc-wc, xh+bo), (hc, xh+bo))
+    wc = 0.7*(2-r)*(w-hc+ct/2)
+    path.curveTo((hc+wc, xh+bo), (w+ct/2, top+xhc), (w+ct/2, top))
     path.lineTo((w+ct/2,0))
-    
-    wc = 0.552284749831*(2-r)*(w-ct)/2
-    xhc = 0.552284749831*xh/2+bo-t/2
     path.lineTo((w-ct/2,0))
-    path.lineTo((w-ct/2, xh/2))
-    path.curveTo((w-ct/2, xh/2+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
-    path.curveTo((hc-wc, xh-t+bo), (ct/2, xh/2+xhc), (ct/2, xh/2))
-    path.closePath()   
+    path.lineTo((w-ct/2, top))
+    wc = 0.7*(2-r)*(w-hc-ct/2)
+    xhc = 0.552284749831*(toph+bo-t)
+    path.curveTo((w-ct/2, top+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
+    wc = 0.552284749831*(2-r)*(hc-ct/2)
+    path.curveTo((hc-wc, xh-t+bo), (ct/2, top+xhc), (ct/2, top))
+    path.closePath()  
     
-    wc = 0.552284749831*(2-r)*w/2-ct/2+(bo*2)
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    path.moveTo((w+ct/2-bo*2, xh/2))
-    path.curveTo((w+ct/2-bo*2, xh/2+xhc), (w+hc-wc, xh+bo), (w+hc, xh+bo))
-    
-    wc = 0.552284749831*(2-r)*w/2+ct/2
-    xhc = 0.552284749831*(2-r)*xh/2+bo
-    path.curveTo((w+hc+wc, xh+bo), (w+w+ct/2, xh/2+xhc), (w+w+ct/2, xh/2))
+    wc = 0.552284749831*(2-r)*(hc-ct/2+it)
+    xhc = 0.552284749831*(2-r)*(toph+bo)
+    path.moveTo((w+ct/2-it, top))
+    path.curveTo((w+ct/2-it, top+xhc), (w+hc-wc, xh+bo), (w+hc, xh+bo))
+    wc = 0.7*(2-r)*(w-hc+ct/2)
+    path.curveTo((w+hc+wc, xh+bo), (w+w+ct/2, top+xhc), (w+w+ct/2, top))
     path.lineTo((w+w+ct/2,0))
-    
-    wc = 0.552284749831*(2-r)*w/2-ct/2
-    xhc = 0.552284749831*xh/2+bo-t/2
     path.lineTo((w+w-ct/2,0))
-    path.lineTo((w+w-ct/2, xh/2))
-    path.curveTo((w+w-ct/2, xh/2+xhc), (w+hc+wc, xh-t+bo), (w+hc, xh-t+bo))
-    path.curveTo((w+hc-wc, xh-t+bo), (w+ct/2, xh/2+xhc), (w+ct/2, xh/2))
-    path.closePath()    
-    
+    path.lineTo((w+w-ct/2, top))
+    wc = 0.7*(2-r)*(w-hc-ct/2)
+    xhc = 0.552284749831*(toph+bo-t)
+    path.curveTo((w+w-ct/2, top+xhc), (w+hc+wc, xh-t+bo), (w+hc, xh-t+bo))
+    wc = 0.552284749831*(2-r)*(hc-ct/2)
+    path.curveTo((w+hc-wc, xh-t+bo), (w+ct/2, top+xhc), (w+ct/2, top))
+    path.closePath()  
+        
     #metrics
     glyph.leftMargin = s*spacing["l"]
     glyph.rightMargin = s*spacing["n_right"]   
@@ -1150,7 +1132,7 @@ def glyph_n(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     w=w*width["n"]
     
-    it = ct*0.5
+    it = ct*0.7
     hc = w*.55
     top = .6*xh
     toph = xh - top
@@ -1158,7 +1140,7 @@ def glyph_n(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path = glyph.getPen()
     
     stem(path, -ct/2, 0, ct, xh)
-    wc = 0.7*(2-r)*(hc-ct/2+it)
+    wc = 0.552284749831*(2-r)*(hc-ct/2+it)
     xhc = 0.552284749831*(2-r)*(toph+bo)
     path.moveTo((ct/2-it, top))
     path.curveTo((ct/2-it, top+xhc), (hc-wc, xh+bo), (hc, xh+bo))
@@ -1172,11 +1154,10 @@ def glyph_n(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     wc = 0.7*(2-r)*(w-hc-ct/2)
     xhc = 0.552284749831*(toph+bo-t)
     path.curveTo((w-ct/2, top+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
-    wc = 0.7*(2-r)*(hc-ct/2)
+    wc = 0.552284749831*(2-r)*(hc-ct/2)
     path.curveTo((hc-wc, xh-t+bo), (ct/2, top+xhc), (ct/2, top))
     path.closePath()     
     
-            
     #metrics
     glyph.leftMargin = s*spacing["l"]
     glyph.rightMargin = s*spacing["n_right"]
@@ -1184,8 +1165,8 @@ def glyph_n(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
 def glyph_o(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("o")
     glyph.unicode = ord("o")
-    
     w=w*width["o"]
+    
     wc = 0.552284749831*(2-r)*(w+rct)/2
     xhc = 0.552284749831*(2-r)*xh/2+bo
     
@@ -1216,11 +1197,19 @@ def glyph_o(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
 def glyph_o_dieresis(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("odieresis")
-    
     construction = GlyphConstructionBuilder("odieresis = o + dieresis@top", font)
     construction.draw(glyph.getPen())
-    
     glyph.unicode = ord("ö")
+    
+    #metrics
+    glyph.leftMargin = s*spacing["o"]
+    glyph.rightMargin = s*spacing["o"]
+    
+def glyph_o_acute(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
+    glyph = font.newGlyph("oacute")
+    construction = GlyphConstructionBuilder("oacute = o + acute@top", font)
+    construction.draw(glyph.getPen())
+    glyph.unicode = ord("ó")
     
     #metrics
     glyph.leftMargin = s*spacing["o"]
@@ -1237,9 +1226,9 @@ def glyph_p(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     hc = w/2
     #curve thickness intersecting the stem
-    it = ct*0.5
+    it = ct*0.7
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     xhc = 0.552284749831*(2-r)*xh/2+bo
     
     path.moveTo((ct/2-it, xh/2))
@@ -1250,7 +1239,7 @@ def glyph_p(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.curveTo((hc+wc, xh+bo), (w+rct/2, xh/2+xhc), (w+rct/2, xh/2))
     path.curveTo((w+rct/2, xh/2-xhc), (hc+wc, -bo), (hc, -bo))
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     
     path.curveTo((hc-wc, -bo), (ct/2-it, xh/2-xhc), (ct/2-it, xh/2))
     path.closePath()
@@ -1285,7 +1274,7 @@ def glyph_q(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     hc = w/2
     #curve thickness intersecting the stem
-    it = ct*0.5
+    it = ct*0.7
     
     wc = 0.552284749831*(2-r)*(w/2+rct/2)
     xhc = 0.552284749831*(2-r)*xh/2+bo
@@ -1293,12 +1282,12 @@ def glyph_q(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.moveTo((-rct/2, xh/2))
     path.curveTo((-rct/2, xh/2+xhc), (hc-wc, xh+bo), (hc, xh+bo))
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     
     path.curveTo((hc+wc, xh+bo), (w-ct/2+it, xh/2+xhc), (w-ct/2+it, xh/2))
     path.curveTo((w-ct/2+it, xh/2-xhc), (hc+wc, -bo), (hc, -bo))
     
-    wc = 0.552284749831*(2-r)*(w/2+ct/2-it)
+    wc = 0.552284749831*(2-r)*(w/2-ct/2+it)
     
     path.curveTo((hc-wc, -bo), (-rct/2, xh/2-xhc), (-rct/2, xh/2))
     path.closePath()
@@ -1324,7 +1313,7 @@ def glyph_r(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     w=w*width["r"]
     hc = w
     #curve thickness intersecting the stem
-    it = ct*0.5
+    it = ct*0.7
 
     path = glyph.getPen()
     stem(path, -ct/2, 0, ct, xh)
@@ -1403,7 +1392,7 @@ def glyph_t(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path = glyph.getPen()
     
     wc = 0.552284749831*(2-r)*(w*2/3-ct/2-t)
-    xhc = 0.552284749831*(2-r)*xh*.2+bo-t
+    xhc = 0.552284749831*(2-r)*(xh*.2+bo-t)
     
     path.moveTo((-ct/2, xh*1.2))
     path.lineTo((ct/2, xh*1.2))
@@ -1412,17 +1401,17 @@ def glyph_t(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.lineTo((w*2/3,-bo+t))
     
     wc = 0.552284749831*(2-r)*(w*2/3+ct/2-t)
-    xhc = 0.552284749831*(2-r)*xh*.2+bo
+    xhc = 0.552284749831*(2-r)*(xh*.2+bo)
     
     path.lineTo((w*2/3,-bo))
     path.lineTo((w*2/3-t,-bo))
     path.curveTo((w*2/3-t-wc,-bo), (-ct/2, xh*.2-xhc), (-ct/2, xh*.2))
     path.closePath()
     
-    path.moveTo((-w/3, xh))
+    path.moveTo((-w/3-ct/2, xh))
     path.lineTo((w*2/3, xh))
     path.lineTo((w*2/3,xh-t))
-    path.lineTo((-w/3, xh-t))
+    path.lineTo((-w/3-ct/2, xh-t))
     path.closePath()
         
     #metrics
@@ -1437,34 +1426,48 @@ def glyph_u(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     w=w*width["u"]
     
     path = glyph.getPen()
-    hc = w*0.45
-    vc = xh*0.4
-    #curve thickness intersecting the stem
-    it = ct*0.5
-    
-    wc = 0.552284749831*(2-r)*(w/2-ct/2)
-    xhc = 0.552284749831*xh/2+bo-t/2
+    it = ct*0.7
+    hc = w*.45
+    bot = .4*xh
+    both = bot
     
     path.moveTo((-ct/2, xh))
     path.lineTo((ct/2, xh))
-    path.lineTo((ct/2, vc))
-    path.curveTo((ct/2, vc-xhc), (hc-wc, -bo+t), (hc, -bo+t))
-    wc = 0.552284749831*(2-r)*(w/2-ct/2)
-    path.curveTo((hc+wc, -bo+t), (w-ct/2, vc-xhc), (w-ct/2, vc))
-    path.lineTo((w-ct/2+it, vc))
+    path.lineTo((ct/2, bot))
+    wc = 0.7*(2-r)*(hc-ct/2)
+    xhc = 0.552284749831*(2-r)*(both+bo-t)
+    path.curveTo((ct/2, bot-xhc), (hc-wc, -bo+t), (hc, -bo+t))
+    wc = 0.552284749831*(2-r)*(w-hc-ct/2)
+    path.curveTo((hc+wc, -bo+t), (w-ct/2, bot-xhc), (w-ct/2, bot))
+    path.lineTo((w-ct/2+it, bot))
 
-    wc = 0.552284749831*(2-r)*(w/2+ct/2)
-    xhc = 0.552284749831*vc+bo
-    path.curveTo((w-ct/2+it, vc-xhc), (hc+wc, -bo), (hc, -bo))
-    wc = 0.552284749831*(2-r)*(w/2+ct/2)
-    path.curveTo((hc-wc, -bo), (-ct/2, vc-xhc), (-ct/2, vc))
+    wc = 0.552284749831*(2-r)*(w-hc-ct/2+it)
+    xhc = 0.552284749831*(2-r)*(bot+bo)
+    path.curveTo((w-ct/2+it, bot-xhc), (hc+wc, -bo), (hc, -bo))
+    wc = 0.7*(2-r)*(hc+ct/2)
+    path.curveTo((hc-wc, -bo), (-ct/2, bot-xhc), (-ct/2, bot))
     path.closePath()
     
-    path.moveTo((w-ct/2, xh))
-    path.lineTo((w+ct/2, xh))
-    path.lineTo((w+ct/2, 0))
-    path.lineTo((w-ct/2, 0))
-    path.closePath()
+    # wc = 0.552284749831*(2-r)*(hc-ct/2+it)
+    # xhc = 0.552284749831*(2-r)*(toph+bo)
+    # path.moveTo((ct/2-it, top))
+    # path.curveTo((ct/2-it, top+xhc), (hc-wc, xh+bo), (hc, xh+bo))
+    
+    # wc = 0.7*(2-r)*(w-hc+ct/2)
+    # path.curveTo((hc+wc, xh+bo), (w+ct/2, top+xhc), (w+ct/2, top))
+    # path.lineTo((w+ct/2,0))
+    
+    # path.lineTo((w-ct/2,0))
+    # path.lineTo((w-ct/2, top))
+    # wc = 0.7*(2-r)*(w-hc-ct/2)
+    # xhc = 0.552284749831*(toph+bo-t)
+    # path.curveTo((w-ct/2, top+xhc), (hc+wc, xh-t+bo), (hc, xh-t+bo))
+    # wc = 0.552284749831*(2-r)*(hc-ct/2)
+    # path.curveTo((hc-wc, xh-t+bo), (ct/2, top+xhc), (ct/2, top))
+    # path.closePath()     
+
+
+    stem(path, w-ct/2, 0, ct, xh)
     
     glyph.appendAnchor("top", (w/2, xh))
     
@@ -1645,9 +1648,9 @@ def glyph_space(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
 def glyph_hyphen(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):    
     glyph = font.newGlyph("hyphen")
     glyph.unicode = ord("-")
+    w=w*width["underscore"]
         
     path = glyph.getPen()
-    
     path.moveTo((0,xh/2-t/2))
     path.lineTo((w,xh/2-t/2))
     path.lineTo((w,xh/2+t/2))
@@ -1663,7 +1666,6 @@ def glyph_underscore(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph.unicode = ord("_")
     
     path = glyph.getPen()
-    
     path.moveTo((0,-t))
     path.lineTo((w,-t))
     path.lineTo((w,0))
@@ -1671,8 +1673,8 @@ def glyph_underscore(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     path.closePath()
         
     #metrics
-    glyph.leftMargin = s*spacing["l"]
-    glyph.rightMargin = s*spacing["l"]
+    glyph.leftMargin = 0
+    glyph.rightMargin = 0
     
 def glyph_period(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("period")
@@ -1764,11 +1766,45 @@ def glyph_exclam(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
 def glyph_colon(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("colon")
     glyph.unicode = ord(":")
+    glyph.appendComponent("dot", offset=(0, xh-rct))
+    glyph.appendComponent("dot", offset=(0, 0))
     
-    #path = glyph.getPen()
+    glyph.leftMargin = s*spacing["l"]
+    glyph.rightMargin = s*spacing["l"]
     
-    #component_dot(path, 0, ct/2, ct*1.25, r)
-    #component_dot(path, 0, xh-ct/2, ct*1.25, r)
+def glyph_slash(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
+    glyph = font.newGlyph("slash")
+    glyph.unicode = ord("/")
+    w=w*width["slash"]
+    
+    path = glyph.getPen()
+    d1 = calculate_diagonal(t, ct, (0, 0), (w, a))
+    path.moveTo((w-d1[0]/2,a))
+    path.lineTo((w+d1[0]/2,a))
+    path.lineTo((d1[0]/2,0))
+    path.lineTo((-d1[0]/2,0))
+    path.closePath()
+    
+    # metrics
+    glyph.leftMargin = s*spacing["A"]
+    glyph.rightMargin = s*spacing["V"]
+
+def glyph_backslash(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
+    glyph = font.newGlyph("backslash")
+    glyph.unicode = ord("\\")
+    w=w*width["slash"]
+    
+    path = glyph.getPen()
+    d1 = calculate_diagonal(t, ct, (0, 0), (w, a))
+    path.moveTo((-d1[0]/2,a))
+    path.lineTo((+d1[0]/2,a))
+    path.lineTo((w+d1[0]/2,0))
+    path.lineTo((w-d1[0]/2,0))
+    path.closePath()
+    
+    # metrics
+    glyph.leftMargin = s*spacing["A"]
+    glyph.rightMargin = s*spacing["V"]
     
 def glyph_parenleft(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("parenleft")
@@ -1855,18 +1891,16 @@ def glyph_bullet(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph.unicode = ord("•")
     
     #component_dot(path, 0, xh/2, t*5, r)
-
     
 def glyph_grave(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("grave")
     glyph.unicode = ord("`")
     
     path = glyph.getPen()
-    
-    path.moveTo((ct/2, a))
-    path.lineTo((-ct/2, a))
-    path.lineTo((t, a*.9))
-    path.lineTo((t*2, a*.9))
+    path.moveTo((ct/2, rct))
+    path.lineTo((-ct/2, rct))
+    path.lineTo((t, -ct))
+    path.lineTo((t*2, -ct))
     path.closePath()
     
     # metrics
@@ -1972,7 +2006,7 @@ def glyph_dot_square(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph.appendAnchor("bottom", (0,0))
     glyph.appendAnchor("center", (0,rct/2))
     glyph.appendAnchor("right", (ct/2, rct/2))
-    glyph.appendAnchor("_top", (0,-xh/6))
+    glyph.appendAnchor("_top", (0,-(a-xh-rct)))
     
 def glyph_dot_diamond(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("dot")
@@ -2019,29 +2053,59 @@ def glyph_dieresis(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     
     glyph.appendComponent("dot", offset=(-s, 0))
     glyph.appendComponent("dot", offset=(s, 0))
-    
     glyph.appendAnchor("_top", (0, -xh/6))
 
 def glyph_breve(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):  
     glyph = font.newGlyph("breve")
     glyph.unicode = ord("˘")  
+    w=w*width["breve"]
     
-    h = xh/6
+    toph = xh*0.25
+    topc = w/2
+    ct = ct*0.8
+    t = t*0.8
     
     path = glyph.getPen()
-    
-    path.moveTo((t, h+w/6))
-    path.qCurveTo((t, h), (w*r, h))
-    path.lineTo((w*(1-r),h))
-    path.qCurveTo((w-t, h), (w-t,h+w/6))
-    
-    path.lineTo((w-t*2, h+w/6))
-    path.qCurveTo((w-t*2, h+t), (w*(1-r), h+t))
-    path.lineTo((w*r, h+t))
-    path.qCurveTo((t*2, h+t), (t*2, h+w/6))
+    wc = 0.552284749831*(2-r)*(w/2-ct/2)
+    xhc = 0.552284749831*(2-r)*(toph+bo-t)
+    path.moveTo((-ct/2, toph))
+    path.lineTo((ct/2, toph))
+    path.curveTo((ct/2, toph-xhc), (topc-wc, -bo+t), (topc, -bo+t))
+    path.curveTo((topc+wc, -bo+t), (w-ct/2, toph-xhc), (w-ct/2, toph))
+    wc = 0.552284749831*(2-r)*(w/2+ct/2)
+    xhc = 0.552284749831*(2-r)*(toph+bo)
+    path.lineTo((w+ct/2, toph))
+    path.curveTo((w+ct/2, toph-xhc), (topc+wc, -bo), (topc, -bo))
+    path.curveTo((topc-wc, -bo), (-ct/2, toph-xhc), (-ct/2, toph))
     path.closePath()
     
-    glyph.appendAnchor("_top", (0,0), color=(1, 0, 0, 1))
+    glyph.appendAnchor("_top", (topc,-xh/6), color=(1, 0, 0, 1))
+    
+def glyph_acute(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):  
+    glyph = font.newGlyph("acute")
+    glyph.unicode = ord("´")  
+    
+    path = glyph.getPen()
+    path.moveTo((-ct/2, rct))
+    path.lineTo((ct/2, rct))
+    path.lineTo((-t, -ct))
+    path.lineTo((-t*2, -ct))
+    path.closePath()
+    
+    glyph.appendAnchor("_top", (-t*1.5,-xh/6-ct), color=(1, 0, 0, 1))
+    
+def glyph_grave(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
+    glyph = font.newGlyph("grave")
+    glyph.unicode = ord("`")
+    
+    path = glyph.getPen()
+    path.moveTo((ct/2, rct))
+    path.lineTo((t*2, -ct))
+    path.lineTo((t, -ct))
+    path.lineTo((-ct/2, rct))
+    path.closePath()
+    
+    glyph.appendAnchor("_top", (t*1.5,-xh/6-ct), color=(1, 0, 0, 1))
     
 def glyph_cedilla(font, xh, a, d, w, t, s, r, ct, bo, rct, srfs):
     glyph = font.newGlyph("cedilla")
@@ -2201,7 +2265,7 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     
     spacing = thickness/50 + 80
     contrast_thickness = thickness*(1+contrast)
-    bottom_offset = thickness*0.1*roundness
+    bottom_offset = thickness*0.15*roundness
     round_contrast_thickness = contrast_thickness * 1.15
     
     if dot_style == "round":
@@ -2219,7 +2283,9 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     glyph_space(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     
     #diacritics
-    #glyph_grave(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_breve(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_acute(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_grave(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_dieresis(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     #glyph_cedilla(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     
@@ -2232,6 +2298,7 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     glyph_H(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs) 
     glyph_I(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_I_dot_accent(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_I_acute(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_K(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_L(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_N(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
@@ -2253,11 +2320,12 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     glyph_d(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     #glyph_e(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_f(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    #glyph_g(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    #glyph_g_breve(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_g(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_g_breve(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_h(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_i_dotless(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_i(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_i_acute(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_j_dotless(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_j(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_k(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
@@ -2266,6 +2334,7 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     glyph_n(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_o(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_o_dieresis(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_o_acute(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_p(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_q(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     glyph_r(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
@@ -2285,9 +2354,11 @@ def generateSource(masterName, xHeight, ascender, descender, width, thickness, r
     #glyph_comma(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     # glyph_quotesingle(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     # glyph_quotedbl(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    # glyph_colon(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    # glyph_hyphen(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
-    # glyph_underscore(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_colon(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_hyphen(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_underscore(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_slash(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
+    glyph_backslash(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     # #glyph_parenleft(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     # #glyph_parenright(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
     # glyph_bracketleft(master, xHeight, ascender, descender, width, thickness, spacing, roundness, contrast_thickness, bottom_offset, round_contrast_thickness, serifs)
@@ -2407,5 +2478,5 @@ def export(file_formats, dot_style, serifs):
         varFont.save(font_name)
         print(f"Done exporting {font_name}")
 
-#testing(2.5,5,9,0.5, "round", False)
-export("ttf", "square", False)
+testing(2.5,5,9,1, "square", False)
+#export("ttf", "square", False)
